@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'confirmation_page.dart';  // Import the new confirmation page
 
 void main() {
   runApp(const SignupValidationApp());
@@ -35,6 +36,8 @@ class SignupForm extends StatefulWidget {
 class _SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
@@ -65,6 +68,7 @@ class _SignupFormState extends State<SignupForm> {
         child: Column(
           children: [
             TextFormField(
+              controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Name',
                 border: OutlineInputBorder(),
@@ -74,6 +78,7 @@ class _SignupFormState extends State<SignupForm> {
             ),
             const SizedBox(height: 15),
             TextFormField(
+              controller: _emailController,
               decoration: const InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(),
@@ -152,10 +157,14 @@ class _SignupFormState extends State<SignupForm> {
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Signup Successful!'),
-                      backgroundColor: Colors.green,
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConfirmationPage(
+                        name: _nameController.text,
+                        email: _emailController.text,
+                        dob: _dobController.text,
+                      ),
                     ),
                   );
                 } else {

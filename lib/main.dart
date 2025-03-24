@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'confirmation_page.dart';  // Import Confirmation Page
+import 'confirmation_page.dart';
 
 void main() {
   runApp(const SignupValidationApp());
@@ -43,6 +43,7 @@ class _SignupFormState extends State<SignupForm> {
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _passwordVisible = false;
+  bool _termsAccepted = false;  // New checkbox variable
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
@@ -69,6 +70,26 @@ class _SignupFormState extends State<SignupForm> {
     _passwordController.clear();
     _confirmPasswordController.clear();
     _formKey.currentState?.reset();
+    setState(() {
+      _termsAccepted = false;
+    });
+  }
+
+  // Show alert for unaccepted terms
+  void _showTermsAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Terms & Conditions'),
+        content: const Text('You must accept the Terms & Conditions to proceed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -131,74 +152,26 @@ class _SignupFormState extends State<SignupForm> {
             ),
             const SizedBox(height: 15),
 
-            // Date of Birth Field
-            TextFormField(
-              controller: _dobController,
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: 'Date of Birth',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.calendar_today),
-              ),
-              onTap: () => _selectDate(context),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'Date of birth is required' : null,
+            // Terms & Conditions Checkbox
+            CheckboxListTile(
+              value: _termsAccepted,
+              onChanged: (value) {
+                setState(() {
+                  _termsAccepted = value!;
+                });
+              },
+              title: const Text('I accept the Terms & Conditions'),
             ),
             const SizedBox(height: 15),
-
-            // Password Field
-            TextFormField(
-              controller: _passwordController,
-              obscureText: !_passwordVisible,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _passwordVisible ? Icons.visibility : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _passwordVisible = !_passwordVisible;
-                    });
-                  },
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Password is required';
-                }
-                if (value.length < 6) {
-                  return 'Password must be at least 6 characters';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 15),
-
-            // Confirm Password Field
-            TextFormField(
-              controller: _confirmPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirm Password',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Confirm your password';
-                }
-                if (value != _passwordController.text) {
-                  return 'Passwords do not match';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
 
             // Signup Button
             ElevatedButton(
               onPressed: () {
+                if (!_termsAccepted) {
+                  _showTermsAlert(context);
+                  return;
+                }
+
                 if (_formKey.currentState!.validate()) {
                   Navigator.push(
                     context,

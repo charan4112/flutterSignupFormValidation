@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'confirmation_page.dart';
+import 'confirmation_page.dart';  
 
 void main() {
   runApp(const SignupValidationApp());
@@ -43,7 +43,8 @@ class _SignupFormState extends State<SignupForm> {
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _passwordVisible = false;
-  bool _termsAccepted = false;  // New checkbox variable
+  bool _termsAccepted = false;
+  bool _isLoading = false;  // Added Loading State
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
@@ -72,6 +73,7 @@ class _SignupFormState extends State<SignupForm> {
     _formKey.currentState?.reset();
     setState(() {
       _termsAccepted = false;
+      _isLoading = false;
     });
   }
 
@@ -92,6 +94,39 @@ class _SignupFormState extends State<SignupForm> {
     );
   }
 
+  // Simulate loading behavior with 2-second delay
+  Future<void> _submitForm() async {
+    setState(() {
+      _isLoading = true;  // Start loading
+    });
+
+    await Future.delayed(const Duration(seconds: 2));  // Simulated delay
+
+    if (_formKey.currentState!.validate()) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ConfirmationPage(
+            name: _nameController.text,
+            email: _emailController.text,
+            dob: _dobController.text,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fix the errors'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+    setState(() {
+      _isLoading = false;  // Stop loading
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -100,7 +135,6 @@ class _SignupFormState extends State<SignupForm> {
         key: _formKey,
         child: Column(
           children: [
-            // Name Field
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -109,46 +143,6 @@ class _SignupFormState extends State<SignupForm> {
               ),
               validator: (value) =>
                   value == null || value.isEmpty ? 'Name is required' : null,
-            ),
-            const SizedBox(height: 15),
-
-            // Email Field
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Email is required';
-                }
-                final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                if (!emailRegExp.hasMatch(value)) {
-                  return 'Enter a valid email';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 15),
-
-            // Phone Number Field
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Phone number is required';
-                }
-                if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-                  return 'Enter a valid 10-digit phone number';
-                }
-                return null;
-              },
             ),
             const SizedBox(height: 15),
 
@@ -164,36 +158,19 @@ class _SignupFormState extends State<SignupForm> {
             ),
             const SizedBox(height: 15),
 
-            // Signup Button
-            ElevatedButton(
-              onPressed: () {
-                if (!_termsAccepted) {
-                  _showTermsAlert(context);
-                  return;
-                }
-
-                if (_formKey.currentState!.validate()) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ConfirmationPage(
-                        name: _nameController.text,
-                        email: _emailController.text,
-                        dob: _dobController.text,
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fix the errors'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Signup'),
-            ),
+            // Signup Button with Loading Indicator
+            _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: () {
+                      if (!_termsAccepted) {
+                        _showTermsAlert(context);
+                        return;
+                      }
+                      _submitForm();
+                    },
+                    child: const Text('Signup'),
+                  ),
 
             // Reset Button
             TextButton(

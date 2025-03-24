@@ -60,6 +60,17 @@ class _SignupFormState extends State<SignupForm> {
     }
   }
 
+  // Clear all fields when Reset is clicked
+  void _resetForm() {
+    _nameController.clear();
+    _emailController.clear();
+    _dobController.clear();
+    _phoneController.clear();
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+    _formKey.currentState?.reset();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -209,6 +220,15 @@ class _SignupFormState extends State<SignupForm> {
                 }
               },
               child: const Text('Signup'),
+            ),
+
+            // Reset Button
+            TextButton(
+              onPressed: _resetForm,
+              child: const Text(
+                'Reset Form',
+                style: TextStyle(color: Colors.blue),
+              ),
             ),
           ],
         ),

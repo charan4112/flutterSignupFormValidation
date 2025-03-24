@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'confirmation_page.dart';  
+import 'confirmation_page.dart';
 
 void main() {
   runApp(const SignupValidationApp());
@@ -44,7 +44,7 @@ class _SignupFormState extends State<SignupForm> {
 
   bool _passwordVisible = false;
   bool _termsAccepted = false;
-  bool _isLoading = false;  // Added Loading State
+  bool _isLoading = false;
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
@@ -62,7 +62,6 @@ class _SignupFormState extends State<SignupForm> {
     }
   }
 
-  // Clear all fields when Reset is clicked
   void _resetForm() {
     _nameController.clear();
     _emailController.clear();
@@ -77,7 +76,6 @@ class _SignupFormState extends State<SignupForm> {
     });
   }
 
-  // Show alert for unaccepted terms
   void _showTermsAlert(BuildContext context) {
     showDialog(
       context: context,
@@ -94,13 +92,12 @@ class _SignupFormState extends State<SignupForm> {
     );
   }
 
-  // Simulate loading behavior with 2-second delay
   Future<void> _submitForm() async {
     setState(() {
-      _isLoading = true;  // Start loading
+      _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 2));  // Simulated delay
+    await Future.delayed(const Duration(seconds: 2));
 
     if (_formKey.currentState!.validate()) {
       Navigator.push(
@@ -123,7 +120,7 @@ class _SignupFormState extends State<SignupForm> {
     }
 
     setState(() {
-      _isLoading = false;  // Stop loading
+      _isLoading = false;
     });
   }
 
@@ -146,7 +143,6 @@ class _SignupFormState extends State<SignupForm> {
             ),
             const SizedBox(height: 15),
 
-            // Terms & Conditions Checkbox
             CheckboxListTile(
               value: _termsAccepted,
               onChanged: (value) {
@@ -158,7 +154,6 @@ class _SignupFormState extends State<SignupForm> {
             ),
             const SizedBox(height: 15),
 
-            // Signup Button with Loading Indicator
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
@@ -172,7 +167,6 @@ class _SignupFormState extends State<SignupForm> {
                     child: const Text('Signup'),
                   ),
 
-            // Reset Button
             TextButton(
               onPressed: _resetForm,
               child: const Text(

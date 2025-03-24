@@ -30,6 +30,23 @@ class SignupForm extends StatefulWidget {
 
 class _SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _dobController = TextEditingController();
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _dobController.text =
+            "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +58,8 @@ class _SignupFormState extends State<SignupForm> {
           children: [
             TextFormField(
               decoration: const InputDecoration(labelText: 'Name'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Name is required';
-                }
-                return null;
-              },
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Name is required' : null,
             ),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Email'),
@@ -63,13 +76,15 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Date of Birth'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Date of birth is required';
-                }
-                return null;
-              },
+              controller: _dobController,
+              readOnly: true,
+              decoration: const InputDecoration(
+                labelText: 'Date of Birth',
+                suffixIcon: Icon(Icons.calendar_today),
+              ),
+              onTap: () => _selectDate(context),
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Date of birth is required' : null,
             ),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Password'),
@@ -103,6 +118,5 @@ class _SignupFormState extends State<SignupForm> {
         ),
       ),
     );
-  } 
-  // sharu
-  
+  }
+}

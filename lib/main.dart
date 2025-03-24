@@ -11,6 +11,10 @@ class SignupValidationApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Signup Validation',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Signup Page'),
@@ -31,6 +35,10 @@ class SignupForm extends StatefulWidget {
 class _SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  bool _passwordVisible = false;
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
@@ -57,38 +65,61 @@ class _SignupFormState extends State<SignupForm> {
         child: Column(
           children: [
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                border: OutlineInputBorder(),
+              ),
               validator: (value) =>
                   value == null || value.isEmpty ? 'Name is required' : null,
             ),
+            const SizedBox(height: 15),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Email is required';
                 }
-                final emailRegExp =
-                    RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                final emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+');
                 if (!emailRegExp.hasMatch(value)) {
                   return 'Enter a valid email';
                 }
                 return null;
               },
             ),
+            const SizedBox(height: 15),
             TextFormField(
               controller: _dobController,
               readOnly: true,
               decoration: const InputDecoration(
                 labelText: 'Date of Birth',
+                border: OutlineInputBorder(),
                 suffixIcon: Icon(Icons.calendar_today),
               ),
               onTap: () => _selectDate(context),
               validator: (value) =>
                   value == null || value.isEmpty ? 'Date of birth is required' : null,
             ),
+            const SizedBox(height: 15),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
+              controller: _passwordController,
+              obscureText: !_passwordVisible,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _passwordVisible = !_passwordVisible;
+                    });
+                  },
+                ),
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Password is required';
@@ -99,16 +130,40 @@ class _SignupFormState extends State<SignupForm> {
                 return null;
               },
             ),
+            const SizedBox(height: 15),
+            TextFormField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Confirm Password',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Confirm your password';
+                }
+                if (value != _passwordController.text) {
+                  return 'Passwords do not match';
+                }
+                return null;
+              },
+            ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Signup Successful!')),
+                    const SnackBar(
+                      content: Text('Signup Successful!'),
+                      backgroundColor: Colors.green,
+                    ),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please fix the errors')),
+                    const SnackBar(
+                      content: Text('Please fix the errors'),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
               },

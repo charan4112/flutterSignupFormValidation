@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'confirmation_page.dart';
+import 'dart:io';
 
 void main() {
   runApp(const SignupValidationApp());
@@ -13,15 +15,10 @@ class SignupValidationApp extends StatelessWidget {
     return MaterialApp(
       title: 'Signup Validation',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.indigo,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Signup Page'),
-        ),
-        body: const SignupForm(),
-      ),
+      home: const SignupForm(),
     );
   }
 }
@@ -38,13 +35,14 @@ class _SignupFormState extends State<SignupForm> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _passwordVisible = false;
   bool _termsAccepted = false;
   bool _isLoading = false;
+
+  File? _profileImage;
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
@@ -62,34 +60,29 @@ class _SignupFormState extends State<SignupForm> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
+
   void _resetForm() {
     _nameController.clear();
     _emailController.clear();
     _dobController.clear();
-    _phoneController.clear();
     _passwordController.clear();
     _confirmPasswordController.clear();
+    _profileImage = null;
     _formKey.currentState?.reset();
     setState(() {
       _termsAccepted = false;
       _isLoading = false;
     });
-  }
-
-  void _showTermsAlert(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Terms & Conditions'),
-        content: const Text('You must accept the Terms & Conditions to proceed.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _submitForm() async {
@@ -107,13 +100,14 @@ class _SignupFormState extends State<SignupForm> {
             name: _nameController.text,
             email: _emailController.text,
             dob: _dobController.text,
+            profileImage: _profileImage,
           ),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fix the errors'),
+          content: Text('Please fix the errors before submitting.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -126,55 +120,99 @@ class _SignupFormState extends State<SignupForm> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage:
+                      _profileImage != null ? FileImage(_profileImage!) : null,
+                  child: _profileImage == null
+                      ? const Icon(Icons.add_a_photo, size: 30)
+                      : null,
+                ),
               ),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'Name is required' : null,
-            ),
-            const SizedBox(height: 15),
+              const SizedBox(height: 15),
 
-            CheckboxListTile(
-              value: _termsAccepted,
-              onChanged: (value) {
-                setState(() {
-                  _termsAccepted = value!;
-                });
-              },
-              title: const Text('I accept the Terms & Conditions'),
-            ),
-            const SizedBox(height: 15),
-
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: () {
-                      if (!_termsAccepted) {
-                        _showTermsAlert(context);
-                        return;
-                      }
-                      _submitForm();
-                    },
-                    child: const Text('Signup'),
-                  ),
-
-            TextButton(
-              onPressed: _resetForm,
-              child: const Text(
-                'Reset Form',
-                style: TextStyle(color: Colors.blue),
+              // Name Field
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Name is required' : null,
               ),
-            ),
-          ],
+              const SizedBox(height: 15),
+
+              // Email Field
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Email is required';
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+
+              // Terms Checkbox
+              CheckboxListTile(
+                value: _termsAccepted,
+                onChanged: (value) {
+                  setState(() {
+                    _termsAccepted = value!;
+                  });
+                },
+                title: const Text('I accept the Terms & Conditions'),
+              ),
+              const SizedBox(height: 15),
+
+              // Signup Button with Spinner
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: () {
+                        if (!_termsAccepted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please accept the Terms & Conditions.'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          return;
+                        }
+                        _submitForm();
+                      },
+                      child: const Text('Signup'),
+                    ),
+
+              // Reset Button
+              TextButton(
+                onPressed: _resetForm,
+                child: const Text(
+                  'Reset Form',
+                  style: TextStyle(color: Colors.blue),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

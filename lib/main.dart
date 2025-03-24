@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'confirmation_page.dart';  // Import the new confirmation page
+import 'confirmation_page.dart';  // Import Confirmation Page
 
 void main() {
   runApp(const SignupValidationApp());
@@ -35,9 +35,10 @@ class SignupForm extends StatefulWidget {
 
 class _SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _dobController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
@@ -67,6 +68,7 @@ class _SignupFormState extends State<SignupForm> {
         key: _formKey,
         child: Column(
           children: [
+            // Name Field
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -77,6 +79,8 @@ class _SignupFormState extends State<SignupForm> {
                   value == null || value.isEmpty ? 'Name is required' : null,
             ),
             const SizedBox(height: 15),
+
+            // Email Field
             TextFormField(
               controller: _emailController,
               decoration: const InputDecoration(
@@ -95,6 +99,28 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             const SizedBox(height: 15),
+
+            // Phone Number Field
+            TextFormField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Phone number is required';
+                }
+                if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                  return 'Enter a valid 10-digit phone number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 15),
+
+            // Date of Birth Field
             TextFormField(
               controller: _dobController,
               readOnly: true,
@@ -108,6 +134,8 @@ class _SignupFormState extends State<SignupForm> {
                   value == null || value.isEmpty ? 'Date of birth is required' : null,
             ),
             const SizedBox(height: 15),
+
+            // Password Field
             TextFormField(
               controller: _passwordController,
               obscureText: !_passwordVisible,
@@ -136,6 +164,8 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             const SizedBox(height: 15),
+
+            // Confirm Password Field
             TextFormField(
               controller: _confirmPasswordController,
               obscureText: true,
@@ -154,6 +184,8 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             const SizedBox(height: 20),
+
+            // Signup Button
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
